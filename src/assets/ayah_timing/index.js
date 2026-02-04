@@ -1,0 +1,20 @@
+export const TIMING_INDEX = [
+  { id: 1, name: "إبراهيم الأخضر", name_en: "Ibrahim Al-Akdar", rewaya: "حفص عن عاصم", file: "read_1.json" },
+  { id: 10, name: "أكرم العلاقمي", name_en: "Akram Alalaqmi", rewaya: "حفص عن عاصم", file: "read_10.json" },
+  { id: 106, name: "محمد الطبلاوي", name_en: "Mohammad Al-Tablaway", rewaya: "حفص عن عاصم", file: "read_106.json" },
+  { id: 112, name: "محمد صديق المنشاوي", name_en: "Mohammed Siddiq Al-Minshawi", rewaya: "حفص عن عاصم", file: "read_112.json" },
+  { id: 118, name: "محمود خليل الحصري", name_en: "Mahmoud Khalil Al-Hussary", rewaya: "حفص عن عاصم", file: "read_118.json" },
+  { id: 159, name: "خالد المهنا", name_en: "Khalid Almohana", rewaya: "حفص عن عاصم", file: "read_159.json" },
+  { id: 256, name: "أحمد خليل شاهين", name_en: "Ahmad Shaheen", rewaya: "حفص عن عاصم", file: "read_256.json" },
+  { id: 31, name: "سعود الشريم", name_en: "Saud Al-Shuraim", rewaya: "حفص عن عاصم", file: "read_31.json" },
+  { id: 32, name: "سهل ياسين", name_en: "Sahl Yassin", rewaya: "حفص عن عاصم", file: "read_32.json" },
+  { id: 5, name: "أحمد بن علي العجمي", name_en: "Ahmad Al-Ajmy", rewaya: "حفص عن عاصم", file: "read_5.json" },
+  { id: 51, name: "عبدالباسط عبدالصمد", name_en: "Abdulbasit Abdulsamad", rewaya: "المصحف المجود", file: "read_51.json" },
+  { id: 53, name: "عبدالباسط عبدالصمد", name_en: "Abdulbasit Abdulsamad", rewaya: "حفص عن عاصم", file: "read_53.json" },
+  { id: 60, name: "عبدالله بصفر", name_en: "Abdullah Basfer", rewaya: "حفص عن عاصم", file: "read_60.json" },
+  { id: 62, name: "عبدالله عواد الجهني", name_en: "Abdullah Al-Johany", rewaya: "حفص عن عاصم", file: "read_62.json" },
+  { id: 67, name: "عبدالمحسن القاسم", name_en: "Abdulmohsen Al-Qasim", rewaya: "حفص عن عاصم", file: "read_67.json" },
+  { id: 74, name: "علي بن عبدالرحمن الحذيفي", name_en: "Ali Alhuthaifi", rewaya: "حفص عن عاصم", file: "read_74.json" },
+  { id: 78, name: "عماد زهير حافظ", name_en: "Emad Hafez", rewaya: "حفص عن عاصم", file: "read_78.json" },
+  { id: 9, name: "أحمد نعينع", name_en: "Ahmad Nauina", rewaya: "حفص عن عاصم", file: "read_9.json" }
+];

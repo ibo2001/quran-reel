@@ -1,14 +1,13 @@
-import React,{useState} from 'react';
+import React from 'react';
 import {useLanguage} from '../../context/LanguageContext';
 
 const ReciterSelector = ({reciters,selectedReciter,onSelect}) => {
-  const {t} = useLanguage();
+  const {t,language} = useLanguage();
 
-  // Mapping for manual Arabic names if needed (redundant if using t() directly)
-  // But t() uses keys like 'reciter_1'. API reciters have ID.
-  // We can try to map ID to translation key.
   const getReciterName = (reciter) => {
-    return t(`reciter_${reciter.id}`) || reciter.name;
+    // Use local metadata names based on current language
+    if (language === 'ar') return reciter.name;
+    return reciter.name_en || reciter.name;
   };
 
   return (

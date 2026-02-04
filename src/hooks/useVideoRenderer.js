@@ -15,16 +15,18 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
     
     // Default styles
     const { 
-        verses, 
-        timings, 
-        translation, 
+        verses = [], 
+        timings = [], 
+        translation = [], 
         background,
-        reciter, // Need reciter for watermark
+        reciter,
+        selectedSurah,
+        startVerse = 1,
         style = {
             color: { value: '#FFFFFF' },
             animation: { id: 'none' }
         }
-    } = data;
+    } = data || {};
     
     // Load background (Image or Video)
     useEffect(() => {
@@ -54,6 +56,7 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
+        if (!ctx) return;
         const width = canvas.width;
         const height = canvas.height;
 
@@ -94,35 +97,51 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
             ctx.fillRect(0, 0, width, height);
         }
 
-        // 2. Find Active Verse
+        // 2. Find Active Verse Index in Sliced Array
         const currentMs = time * 1000;
-        let activeIndex = -1;
+        let verseToRender = null;
+        let activeTiming = null;
 
         if (timings && timings.length > 0) {
-            activeIndex = timings.findIndex(t => currentMs >= t.start_ms && currentMs <= t.end_ms);
+            activeTiming = timings.find(t => currentMs >= t.start_ms && currentMs <= t.end_ms);
+            if (activeTiming) {
+                // The logical index in the SLICED 'verses' array
+                // If timings[i].ayah is 5, and range starts at 5, index is 0.
+                const relativeIndex = activeTiming.ayah - startVerse;
+                if (relativeIndex >= 0 && relativeIndex < verses.length) {
+                    verseToRender = verses[relativeIndex];
+                }
+            }
         }
 
-        // 3. Draw Text
-        if (activeIndex !== -1 && verses && verses[activeIndex]) {
-            const verse = verses[activeIndex];
-            const trans = translation && translation[activeIndex];
+        // 3. Draw Surah Title (Top)
+        const themeColor = style.color?.value || '#FFFFFF';
+
+        if (selectedSurah) {
+            ctx.direction = 'rtl';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = themeColor;
+            ctx.font = '60px QuranTitles';
+            // Some QuranTitles fonts map characters to ornate names, but often Surah ID works.
+            // If it's a number-to-name mapping, we use the ID.
+            ctx.fillText(String(selectedSurah.id), width / 2, 100);
+        }
+
+        // 4. Draw Text
+        if (verseToRender && activeTiming) {
+            const verse = verseToRender;
+            const trans = translation && translation[verses.indexOf(verse)];
             
             // Animation State
             let opacity = 1;
-            let themeColor = style.color?.value || '#FFFFFF';
             let yOffset = 0;
 
             if (style.animation?.id === 'fade') {
-                // Simple fade in based on how far we are into the verse? 
-                // Or just global fade? For simple "karaoke", assume visible.
-                // Let's do a quick fade-in at the start of the verse
-                const verseStart = timings[activeIndex].start_ms / 1000;
+                const verseStart = activeTiming.start_ms / 1000;
                 const progress = time - verseStart;
-                if (progress < 0.5) { // 500ms fade
-                    opacity = progress / 0.5;
-                }
+                if (progress < 0.5) opacity = progress / 0.5;
             } else if (style.animation?.id === 'slide-up') {
-                const verseStart = timings[activeIndex].start_ms / 1000;
+                const verseStart = activeTiming.start_ms / 1000;
                 const progress = time - verseStart;
                 if (progress < 0.5) {
                     opacity = progress / 0.5;
@@ -135,50 +154,35 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
             // Text Styles
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
+            ctx.direction = 'rtl';
             
-            // Arabic Text
-            const fontFamily = "'Amiri Quran', serif"; 
-            ctx.font = `bold 40px ${fontFamily}`;
+            // Arabic Text (Custom Font)
+            ctx.font = `bold 45px UthmanicText`;
             ctx.fillStyle = themeColor;
-            ctx.direction = 'rtl'; // Critical for correct Bidi rendering
             
             // Wrap Text Logic
             const maxWidth = width * 0.8; 
-            const words = verse.text_uthmani.split(' ');
             
-            // Verse Number Rendering
-            // User requested: "Render verse number at the start line".
-            // In RTL, "Start" is Right.
-            // Using Ornate Parenthesis: U+FD3E ﴾ (Left) and U+FD3F ﴿ (Right).
-            // Logic: ﴾ 1 ﴿
+            // Verse Number Rendering (Custom Font)
             const verseNum = verse.verse_key.split(':')[1];
-            const toArabic = (n) => n.replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
-            const verseSymbol = `﴾${toArabic(verseNum)}﴿`;
+            // We'll draw the number at the start of the line with its specific font
+            // Custom font for numbers often handles the ornate style.
+            const verseNumberStyled = verseNum; // The numbers font will style it
             
-            // Appending symbol to the text ensures it flows correctly in RTL block.
-            // Text ... Symbol.
-            // If Text is Arabic, and Symbol is Arabic-like, they flow Right to Left.
-            // [Text] [Symbol] -> Text is Rightmost? No. First char is Rightmost.
-            // If I want Symbol on Right (Start):
-            // I must PREPEND it. 
-            // Symbol + Text.
-            // First char of Symbol is ﴾.
-            // So ﴾ ... ﴿ [Text].
-            // Visual: ﴾ 1 ﴿ [Text].
-            // This puts verse number on the RIGHT.
+            // To handle multiple fonts in one line, we need to measure and draw separately 
+            // OR use a trick. Since wrap is needed, easier to draw number separately at end of last line?
+            // User said "at the start line". So for RTL, that's the RIGHT side.
             
-            const fullText = `${verseSymbol} ${verse.text_uthmani}`; 
-            
-            const wordsToDraw = fullText.split(' ');
+            const words = verse.text_uthmani.split(' ');
             let line = '';
             const lines = [];
 
-            for (let i = 0; i < wordsToDraw.length; i++) {
-                const testLine = line + wordsToDraw[i] + ' ';
+            for (let i = 0; i < words.length; i++) {
+                const testLine = line + words[i] + ' ';
                 const metrics = ctx.measureText(testLine);
                 if (metrics.width > maxWidth && i > 0) {
                     lines.push(line);
-                    line = wordsToDraw[i] + ' ';
+                    line = words[i] + ' ';
                 } else {
                     line = testLine;
                 }
@@ -186,21 +190,43 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
             lines.push(line);
 
             // Draw Lines
-            const lineHeight = 70; 
+            const lineHeight = 80; 
             const totalTextHeight = lines.length * lineHeight;
             let startY = height / 2 - (totalTextHeight / 2) + yOffset;
             
             lines.forEach((l, index) => {
-                ctx.fillText(l.trim(), width / 2, startY + (index * lineHeight));
+                const content = l.trim();
+                ctx.font = `bold 45px UthmanicText`;
+                
+                // If it's the first line, draw the verse number at the START (Right)
+                if (index === 0) {
+                    const textMetrics = ctx.measureText(content);
+                    const numFont = '30px QuranNumbers';
+                    ctx.font = numFont;
+                    const numMetrics = ctx.measureText(verseNumberStyled);
+                    
+                    const totalWidth = textMetrics.width + numMetrics.width + 15;
+                    const startX = (width / 2) + (totalWidth / 2); // Right side of the block
+                    
+                    // Draw Number
+                    ctx.fillText(verseNumberStyled, startX - (numMetrics.width / 2), startY);
+                    
+                    // Draw Text
+                    ctx.font = `bold 45px UthmanicText`;
+                    ctx.fillText(content, startX - numMetrics.width - 15 - (textMetrics.width / 2), startY);
+                } else {
+                    ctx.fillText(content, width / 2, startY + (index * lineHeight));
+                }
             });
 
-            // Translation
+            // Translation (Fallback font)
             if (trans) {
+                ctx.globalAlpha = opacity * 0.8;
                 ctx.font = '20px Arial';
                 ctx.fillStyle = '#ddd'; 
+                ctx.direction = 'ltr'; // Translation is usually LTR
                 const transText = trans.text ? trans.text.replace(/<[^>]*>?/gm, '') : '';
-                // Split translation if too long?
-                // Basic wrap for translation
+                
                 const transWords = transText.split(' ');
                 let transLine = '';
                 let transLines = [];
@@ -215,19 +241,20 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
                 transLines.push(transLine);
                 
                 transLines.forEach((tl, idx) => {
-                    ctx.fillText(tl.trim(), width / 2, startY + (lines.length * lineHeight) + 20 + (idx * 30));
+                    ctx.fillText(tl.trim(), width / 2, startY + (lines.length * lineHeight) + 30 + (idx * 30));
                 });
             }
             
             // Reciter Name Watermark
             if (reciter && reciter.name) {
+                ctx.direction = 'rtl';
                 ctx.font = '16px Arial';
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
                 ctx.textAlign = 'right';
-                ctx.fillText(reciter.name, width - 20, height - 20); // Bottom trailing (Right)
+                ctx.fillText(reciter.name, width - 20, height - 20);
             }
 
-            ctx.globalAlpha = 1.0; // Reset
+            ctx.globalAlpha = 1.0; 
         }
     };
 

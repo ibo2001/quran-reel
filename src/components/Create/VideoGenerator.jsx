@@ -204,7 +204,9 @@ const VideoGenerator = () => {
                 background: selectedBackground,
                 rangeStart: filteredData.startTime,
                 rangeEnd: filteredData.endTime,
-                reciter: selectedReciter, // Passed reciter data for watermark
+                reciter: selectedReciter,
+                selectedSurah: selectedSurah,
+                startVerse: startVerse,
                 style: {
                   font: selectedFont,
                   color: selectedColor,

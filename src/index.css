@@ -7,3 +7,36 @@
     @apply bg-gray-900 text-white;
   }
 }
+
+@font-face {
+  font-family: 'UthmanicText';
+  src: url('./assets/fonts/UthmanTN1Ver20.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'QuranTitles';
+  src: url('./assets/fonts/QuranTitles.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'QuranNumbers';
+  src: url('./assets/fonts/QuranNumbers.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.font-uthman {
+  font-family: 'UthmanicText', serif;
+}
+
+.font-quran-titles {
+  font-family: 'QuranTitles', serif;
+}
+
+.font-quran-numbers {
+  font-family: 'QuranNumbers', serif;
+}

@@ -173,7 +173,7 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
             // OR use a trick. Since wrap is needed, easier to draw number separately at end of last line?
             // User said "at the start line". So for RTL, that's the RIGHT side.
             
-            const words = verse.text_uthmani.split(' ');
+            const words = verse.text_qpc_hafs.split(' ');
             let line = '';
             const lines = [];
 
@@ -195,28 +195,8 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
             let startY = height / 2 - (totalTextHeight / 2) + yOffset;
             
             lines.forEach((l, index) => {
-                const content = l.trim();
                 ctx.font = `bold 45px UthmanicText`;
-                
-                // If it's the first line, draw the verse number at the START (Right)
-                if (index === 0) {
-                    const textMetrics = ctx.measureText(content);
-                    const numFont = '30px QuranNumbers';
-                    ctx.font = numFont;
-                    const numMetrics = ctx.measureText(verseNumberStyled);
-                    
-                    const totalWidth = textMetrics.width + numMetrics.width + 15;
-                    const startX = (width / 2) + (totalWidth / 2); // Right side of the block
-                    
-                    // Draw Number
-                    ctx.fillText(verseNumberStyled, startX - (numMetrics.width / 2), startY);
-                    
-                    // Draw Text
-                    ctx.font = `bold 45px UthmanicText`;
-                    ctx.fillText(content, startX - numMetrics.width - 15 - (textMetrics.width / 2), startY);
-                } else {
-                    ctx.fillText(content, width / 2, startY + (index * lineHeight));
-                }
+                ctx.fillText(l.trim(), width / 2, startY + (index * lineHeight));
             });
 
             // Translation (Fallback font)

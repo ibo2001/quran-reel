@@ -171,7 +171,7 @@ const VideoGenerator = () => {
                 {filteredData.verses.map((v) => (
                   <div key={v.id} className="p-2 border border-gray-700 rounded hover:bg-gray-700 cursor-pointer">
                     <span className="font-bold mr-2">{v.verse_key}</span>
-                    <span className="break-words font-arabic" dir="rtl">{v.text_uthmani ? v.text_uthmani.substring(0,50) + '...' : ''}</span>
+                    <span className="break-words font-arabic" dir="rtl">{v.text_qpc_hafs ? v.text_qpc_hafs.substring(0,50) + '...' : ''}</span>
                   </div>
                 ))}
               </div>

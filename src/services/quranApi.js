@@ -8,10 +8,9 @@ const QURAN_API_BASE = 'https://api.quran.com/api/v4';
  */
 export const fetchChapterVerses = async (chapterId) => {
   try {
-    // Fetch all verses for the chapter. Pagination might be needed for large surahs (Bakara).
-    // The API default page size is 10. We need ALL.
-    // Fortunately, we can request per_page=286 (max verses in Bakara).
-    const response = await fetch(`${QURAN_API_BASE}/quran/verses/uthmani?chapter_number=${chapterId}`);
+    // Fetch all verses for the chapter using QPC Hafs script (v4)
+    // This script includes the end-of-ayah number symbol naturally.
+    const response = await fetch(`${QURAN_API_BASE}/quran/verses/qpc_hafs?chapter_number=${chapterId}`);
     if (!response.ok) throw new Error('Failed to fetch verses');
     const data = await response.json();
     return data.verses;

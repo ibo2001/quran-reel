@@ -1,50 +1,48 @@
 import React from 'react';
+import {useLanguage} from '../../context/LanguageContext';
 
-const VerseRangeSelector = ({
-  totalVerses,
-  startVerse,
-  endVerse,
-  onStartChange,
-  onEndChange
-}) => {
-  if (!totalVerses) return null;
+const VerseRangeSelector = ({totalVerses,startVerse,endVerse,onStartChange,onEndChange}) => {
+  const {t} = useLanguage();
 
-  // Create array of verse numbers [1...total]
-  const verseOptions = Array.from({length: totalVerses},(_,i) => i + 1);
+  // Create array of verse numbers [1, 2, ..., totalVerses]
+  const verseNumbers = Array.from({length: totalVerses},(_,i) => i + 1);
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-gray-300">Select Verse Range</h3>
-      <div className="flex space-x-2">
+      <h3 className="text-sm font-semibold text-gray-300">{t('selectVerseRange') || 'Select Verse Range'}</h3>
+      <div className="flex gap-2">
         <div className="flex-1">
-          <label className="block text-xs text-gray-400 mb-1">Start Verse</label>
+          <label className="text-xs text-gray-400 block mb-1">{t('startVerse') || 'Start Verse'}</label>
           <select
-            className="w-full bg-gray-800 border border-gray-700 rounded-md p-2 text-white text-sm"
             value={startVerse}
-            onChange={(e) => onStartChange(parseInt(e.target.value))}
+            onChange={(e) => onStartChange(Number(e.target.value))}
+            className="w-full bg-gray-700 text-white text-xs p-2 rounded border border-gray-600 focus:border-emerald-500 outline-none"
           >
-            {verseOptions.map(num => (
-              <option key={`start-${num}`} value={num} disabled={endVerse && num > endVerse}>
-                Verse {num}
+            {verseNumbers.map(n => (
+              <option key={`start-${n}`} value={n}>
+                {t('verse') || 'Verse'} {n}
               </option>
             ))}
           </select>
         </div>
         <div className="flex-1">
-          <label className="block text-xs text-gray-400 mb-1">End Verse</label>
+          <label className="text-xs text-gray-400 block mb-1">{t('endVerse') || 'End Verse'}</label>
           <select
-            className="w-full bg-gray-800 border border-gray-700 rounded-md p-2 text-white text-sm"
-            value={endVerse || totalVerses}
-            onChange={(e) => onEndChange(parseInt(e.target.value))}
+            value={endVerse}
+            onChange={(e) => onEndChange(Number(e.target.value))}
+            className="w-full bg-gray-700 text-white text-xs p-2 rounded border border-gray-600 focus:border-emerald-500 outline-none"
           >
-            {verseOptions.map(num => (
-              <option key={`end-${num}`} value={num} disabled={num < startVerse}>
-                Verse {num}
+            {verseNumbers.map(n => (
+              <option key={`end-${n}`} value={n} disabled={n < startVerse}>
+                {t('verse') || 'Verse'} {n}
               </option>
             ))}
           </select>
         </div>
       </div>
+      <p className="text-xs text-gray-500 italic">
+        {t('totalVersesSelected') || 'Total verses selected'}: {endVerse - startVerse + 1}
+      </p>
     </div>
   );
 };

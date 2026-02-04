@@ -1,8 +1,10 @@
 import React,{useState} from 'react';
 import {BACKGROUND_PRESETS} from '../../constants';
+import {useLanguage} from '../../context/LanguageContext';
 
 const BackgroundSelector = ({selectedBackground,onSelect}) => {
   const [customBackgrounds,setCustomBackgrounds] = useState([]);
+  const {t} = useLanguage();
 
   const handleUpload = (e) => {
     const file = e.target.files[0];
@@ -29,7 +31,7 @@ const BackgroundSelector = ({selectedBackground,onSelect}) => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-gray-300">Select Background</h3>
+      <h3 className="text-sm font-semibold text-gray-300">{t('selectBackground') || 'Select Background'}</h3>
 
       {/* Upload Button */}
       <label
@@ -44,7 +46,7 @@ const BackgroundSelector = ({selectedBackground,onSelect}) => {
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
-        <span>Upload Image/Video</span>
+        <span>{t('upload') || 'Upload Image/Video'}</span>
       </label>
 
       <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto pr-1">

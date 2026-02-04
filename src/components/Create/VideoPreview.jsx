@@ -1,4 +1,4 @@
-import React,{useRef} from 'react';
+import React,{useRef,useEffect} from 'react';
 import {useVideoRenderer} from '../../hooks/useVideoRenderer';
 
 const VideoPreview = ({audioUrl,data}) => {
@@ -6,6 +6,45 @@ const VideoPreview = ({audioUrl,data}) => {
   const audioRef = useRef(null);
 
   const {isPlaying,togglePlay,currentTime} = useVideoRenderer(canvasRef,audioRef,data);
+
+  // Monitor Playback within Range
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const checkTime = () => {
+      const {rangeStart,rangeEnd} = data;
+
+      // Loop if we hit the end of the selected range
+      if (rangeEnd > 0 && audio.currentTime >= rangeEnd) {
+        audio.currentTime = rangeStart;
+        // audio.play(); // Auto loop
+      }
+    };
+
+    const handleSeek = () => {
+      // Ensure we start at the right spot if we just loaded or changed source
+      const {rangeStart} = data;
+      if (audio.currentTime < rangeStart) {
+        audio.currentTime = rangeStart;
+      }
+    }
+
+    audio.addEventListener('timeupdate',checkTime);
+    audio.addEventListener('play',handleSeek); // Check roughly on play start
+
+    return () => {
+      audio.removeEventListener('timeupdate',checkTime);
+      audio.removeEventListener('play',handleSeek);
+    };
+  },[data.rangeStart,data.rangeEnd]);
+
+  // Force seek when range changes
+  useEffect(() => {
+    if (audioRef.current && data.rangeStart) {
+      audioRef.current.currentTime = data.rangeStart;
+    }
+  },[data.rangeStart]);
 
   return (
     <div className="flex flex-col items-center space-y-4">

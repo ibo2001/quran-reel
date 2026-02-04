@@ -3,9 +3,11 @@ import {useAuth} from '../../hooks/useAuth';
 import {getUserProjects} from '../../services/db';
 import Navbar from '../Layout/Navbar';
 import {Link,useNavigate} from 'react-router-dom';
+import {useLanguage} from '../../context/LanguageContext';
 
 const Dashboard = () => {
   const {user,loading} = useAuth();
+  const {t} = useLanguage();
   const [projects,setProjects] = useState([]);
   const [isLoadingProjects,setIsLoadingProjects] = useState(true);
   const navigate = useNavigate();
@@ -46,17 +48,17 @@ const Dashboard = () => {
 
       <div className="max-w-6xl mx-auto p-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-emerald-400">My Creations</h1>
+          <h1 className="text-3xl font-bold text-emerald-400">{t('myCreations')}</h1>
           <Link to="/" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md transition text-sm font-medium">
-            + New Project
+            {t('newProject')}
           </Link>
         </div>
 
         {projects.length === 0 ? (
           <div className="text-center py-20 bg-gray-800 rounded-lg border border-gray-700">
-            <p className="text-xl text-gray-400 mb-4">You haven't created any projects yet.</p>
+            <p className="text-xl text-gray-400 mb-4">{t('noProjects')}</p>
             <Link to="/" className="text-emerald-400 hover:text-emerald-300 font-medium">
-              Start creating now &rarr;
+              {t('startCreating')}
             </Link>
           </div>
         ) : (
@@ -83,12 +85,12 @@ const Dashboard = () => {
                 </div>
 
                 <div className="p-4">
-                  <h3 className="font-bold text-lg mb-1">Surah {project.surah.name}</h3>
+                  <h3 className="font-bold text-lg mb-1">{t('surah')} {project.surah.name}</h3>
                   <p className="text-xs text-gray-400 mb-3">
-                    Verses {project.range.start} - {project.range.end || 'End'}
+                    {t('verses')} {project.range.start} - {project.range.end || t('end')}
                   </p>
                   <div className="text-xs text-gray-500">
-                    Created: {project.createdAt?.toDate().toLocaleDateString()}
+                    {t('created')}{project.createdAt?.toDate().toLocaleDateString()}
                   </div>
                 </div>
               </div>

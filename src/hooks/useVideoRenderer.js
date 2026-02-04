@@ -19,8 +19,8 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
         timings, 
         translation, 
         background,
+        reciter, // Need reciter for watermark
         style = {
-            font: { value: "'Amiri', serif" },
             color: { value: '#FFFFFF' },
             animation: { id: 'none' }
         }
@@ -137,23 +137,48 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
             ctx.textBaseline = 'middle';
             
             // Arabic Text
-            const fontFamily = style.font?.value || 'Arial';
+            const fontFamily = "'Amiri Quran', serif"; 
             ctx.font = `bold 40px ${fontFamily}`;
             ctx.fillStyle = themeColor;
+            ctx.direction = 'rtl'; // Critical for correct Bidi rendering
             
             // Wrap Text Logic
-            const maxWidth = width * 0.8; // 80% padding
+            const maxWidth = width * 0.8; 
             const words = verse.text_uthmani.split(' ');
+            
+            // Verse Number Rendering
+            // User requested: "Render verse number at the start line".
+            // In RTL, "Start" is Right.
+            // Using Ornate Parenthesis: U+FD3E ﴾ (Left) and U+FD3F ﴿ (Right).
+            // Logic: ﴾ 1 ﴿
+            const verseNum = verse.verse_key.split(':')[1];
+            const toArabic = (n) => n.replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+            const verseSymbol = `﴾${toArabic(verseNum)}﴿`;
+            
+            // Appending symbol to the text ensures it flows correctly in RTL block.
+            // Text ... Symbol.
+            // If Text is Arabic, and Symbol is Arabic-like, they flow Right to Left.
+            // [Text] [Symbol] -> Text is Rightmost? No. First char is Rightmost.
+            // If I want Symbol on Right (Start):
+            // I must PREPEND it. 
+            // Symbol + Text.
+            // First char of Symbol is ﴾.
+            // So ﴾ ... ﴿ [Text].
+            // Visual: ﴾ 1 ﴿ [Text].
+            // This puts verse number on the RIGHT.
+            
+            const fullText = `${verseSymbol} ${verse.text_uthmani}`; 
+            
+            const wordsToDraw = fullText.split(' ');
             let line = '';
             const lines = [];
 
-            for (let i = 0; i < words.length; i++) {
-                const testLine = line + words[i] + ' ';
+            for (let i = 0; i < wordsToDraw.length; i++) {
+                const testLine = line + wordsToDraw[i] + ' ';
                 const metrics = ctx.measureText(testLine);
-                const testWidth = metrics.width;
-                if (testWidth > maxWidth && i > 0) {
+                if (metrics.width > maxWidth && i > 0) {
                     lines.push(line);
-                    line = words[i] + ' ';
+                    line = wordsToDraw[i] + ' ';
                 } else {
                     line = testLine;
                 }
@@ -161,13 +186,9 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
             lines.push(line);
 
             // Draw Lines
-            const lineHeight = 60;
+            const lineHeight = 70; 
             const totalTextHeight = lines.length * lineHeight;
             let startY = height / 2 - (totalTextHeight / 2) + yOffset;
-            
-            // Center entire block vertically (pushing translation down if needed)
-            // If translation exists, maybe shift arabic up slightly? 
-            // For now, keep it simple.
             
             lines.forEach((l, index) => {
                 ctx.fillText(l.trim(), width / 2, startY + (index * lineHeight));
@@ -177,10 +198,33 @@ export const useVideoRenderer = (canvasRef, audioRef, data) => {
             if (trans) {
                 ctx.font = '20px Arial';
                 ctx.fillStyle = '#ddd'; 
-                // Simple wrap for translation too?
                 const transText = trans.text ? trans.text.replace(/<[^>]*>?/gm, '') : '';
-                // Just draw it below the last arabic line
-                ctx.fillText(transText, width / 2, startY + (lines.length * lineHeight) + 20);
+                // Split translation if too long?
+                // Basic wrap for translation
+                const transWords = transText.split(' ');
+                let transLine = '';
+                let transLines = [];
+                for(let w of transWords) {
+                    if (ctx.measureText(transLine + w).width > maxWidth) {
+                        transLines.push(transLine);
+                        transLine = w + ' ';
+                    } else {
+                        transLine += w + ' ';
+                    }
+                }
+                transLines.push(transLine);
+                
+                transLines.forEach((tl, idx) => {
+                    ctx.fillText(tl.trim(), width / 2, startY + (lines.length * lineHeight) + 20 + (idx * 30));
+                });
+            }
+            
+            // Reciter Name Watermark
+            if (reciter && reciter.name) {
+                ctx.font = '16px Arial';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.textAlign = 'right';
+                ctx.fillText(reciter.name, width - 20, height - 20); // Bottom trailing (Right)
             }
 
             ctx.globalAlpha = 1.0; // Reset

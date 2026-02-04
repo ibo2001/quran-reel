@@ -1,27 +1,35 @@
 import React from 'react';
+import {useLanguage} from '../../context/LanguageContext';
 
 const SurahSelector = ({surahs,selectedSurah,onSelect}) => {
-  if (!surahs || surahs.length === 0) return null;
+  const {t} = useLanguage();
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-300">Select Surah</label>
-      <select
-        className="w-full bg-gray-800 border border-gray-700 rounded-md p-2 text-white focus:ring-2 focus:ring-emerald-500 outline-none"
-        onChange={(e) => {
-          const idx = parseInt(e.target.value);
-          const surah = surahs.find(s => s.surah_number === idx);
-          onSelect(surah);
-        }}
-        value={selectedSurah?.surah_number || ''}
-      >
-        <option value="">Choose Surah (Available tracks)</option>
-        {surahs.map(surah => (
-          <option key={surah.surah_number} value={surah.surah_number}>
-            {surah.surah_number}. {surah.surah_name_en} ({surah.surah_name})
-          </option>
-        ))}
-      </select>
+      <h3 className="text-sm font-semibold text-gray-300">{t('selectSurah') || 'Select Surah'}</h3>
+
+      <div className="relative">
+        <select
+          value={selectedSurah?.id || ''}
+          onChange={(e) => {
+            const surah = surahs.find(s => s.id === parseInt(e.target.value));
+            onSelect(surah);
+          }}
+          className="w-full bg-gray-700 text-white text-xs p-3 rounded border border-gray-600 focus:border-emerald-500 outline-none appearance-none font-sans"
+        >
+          <option value="" disabled>{t('selectSurah') || 'Select Surah'}</option>
+          {surahs.map((surah) => (
+            <option key={surah.id} value={surah.id}>
+              {surah.id}. {surah.name_simple} - {surah.name_arabic}
+            </option>
+          ))}
+        </select>
+        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+      </div>
     </div>
   );
 };
